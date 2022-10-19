@@ -1,10 +1,15 @@
 import abc
+import enum
 import tempfile
 
 import catboost
 
 
 class BaseModel(abc.ABC):
+    """
+    Abstract class for base model
+    """
+
     def __init__(self):
         pass
 
@@ -27,6 +32,10 @@ class BaseModel(abc.ABC):
 
 
 class CatBoostClassifierModel(BaseModel):
+    """
+    CatBoost model for classification task
+    """
+
     def __init__(self, params: dict | None = None, obj=None):
         super().__init__()
         if obj is None:
@@ -53,13 +62,65 @@ class CatBoostClassifierModel(BaseModel):
         return CatBoostClassifierModel(obj=clf)
 
 
+class CatBoostRegressorModel(BaseModel):
+    """
+    CatBoost model for regression task
+    """
+
+    def __init__(self, params: dict | None = None, obj=None):
+        super().__init__()
+        if obj is None:
+            self.reg = catboost.CatBoostRegressor(**params)
+        else:
+            self.reg = obj
+
+    def fit(self, X, y):
+        self.reg.fit(X, y)
+
+    def predict(self, X):
+        return self.reg.predict(X)
+
+    def dumps(self) -> bytes:
+        with tempfile.NamedTemporaryFile() as t:
+            self.reg.save_model(t.name)
+            t.seek(0)
+            return t.read()
+
+    @staticmethod
+    def loads(blob: bytes):
+        reg = catboost.CatBoostRegressor()
+        reg.load_model(blob=blob)
+        return CatBoostRegressorModel(obj=reg)
+
+
+class ModelEnum(enum.Enum):
+    """
+    Possible model types and respective classes
+    """
+    catboost_classifier = CatBoostClassifierModel
+    catboost_regressor = CatBoostRegressorModel
+
+
 def get_model_type(model_type: str) -> type[BaseModel]:
-    if model_type == "catboost_classifier":
-        return CatBoostClassifierModel
-    raise Exception(f"Unknown model {model_type}")
+    """
+    Get class of model by its type
+    :param model_type: type of model
+    :return: class of model
+    """
+    mt = getattr(ModelEnum, model_type, None)
+    if mt is None:
+        raise Exception(f"Unknown model {model_type}")
+    return mt.value
 
 
 def load_model(model_type: str, blob: bytes) -> BaseModel:
-    if model_type == "catboost_classifier":
-        return CatBoostClassifierModel.loads(blob)
-    raise Exception(f"Unknown model {model_type}")
+    """
+    Load model binary from its name
+    :param model_type: type of model
+    :param blob: binary representation of model
+    :return: loaded (fitted) model of certain type
+    """
+    mt = getattr(ModelEnum, model_type, None)
+    if mt is None:
+        raise Exception(f"Unknown model {model_type}")
+    return mt.value.loads(blob)

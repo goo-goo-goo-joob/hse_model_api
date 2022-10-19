@@ -130,3 +130,5 @@ dmypy.json
 
 # JetBrains
 .idea/
+main.db
+catboost_info
