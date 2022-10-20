@@ -12,3 +12,5 @@ REST API for
 Swagger documentation is available
 
 Code style check with `make linters`
+
+API demo [notebook](api_test.ipynb) 
