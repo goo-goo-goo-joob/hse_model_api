@@ -97,6 +97,7 @@ class ModelEnum(enum.Enum):
     """
     Possible model types and respective classes
     """
+
     catboost_classifier = CatBoostClassifierModel
     catboost_regressor = CatBoostRegressorModel
 

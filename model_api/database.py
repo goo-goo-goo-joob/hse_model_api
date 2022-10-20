@@ -1,7 +1,8 @@
 import json
-from flask import g
 import sqlite3
 import typing
+
+from flask import g
 
 INIT_STATEMENT = """CREATE TABLE IF NOT EXISTS models
 (
@@ -17,7 +18,8 @@ class DataBase:
     """
     Class for database operations
     """
-    def __init__(self, path='main.db'):
+
+    def __init__(self, path="main.db"):
         self.conn = sqlite3.connect(path, check_same_thread=False)
         with self.conn:
             self.conn.executescript(INIT_STATEMENT)
@@ -52,16 +54,16 @@ class DataBase:
         with self.conn:
             self.conn.execute(sql, (id_,))
 
-    def get_model(self, id_: str) -> dict[str, typing.Any]:
+    def get_model(self, id_src: str) -> dict[str, typing.Any]:
         """
         Get model info from database
-        :param id_: unique string identifier
+        :param id_src: unique string identifier
         :return: model info
         """
         sql = """SELECT id, type, params, binary
 FROM models
 WHERE id = ?;"""
-        for id_, type_, params, binary in self.conn.execute(sql, (id_,)):
+        for id_, type_, params, binary in self.conn.execute(sql, (id_src,)):
             return {
                 "id": id_,
                 "type": type_,
@@ -77,15 +79,17 @@ WHERE id = ?;"""
         sql = """SELECT id, type, params FROM models"""
         result = []
         for id_, type_, params in self.conn.execute(sql):
-            result.append({
-                "id": id_,
-                "type": type_,
-                "params": json.loads(params),
-            })
+            result.append(
+                {
+                    "id": id_,
+                    "type": type_,
+                    "params": json.loads(params),
+                }
+            )
         return result
 
 
 def get_database():
-    if 'database' not in g:
+    if "database" not in g:
         g.database = DataBase()
     return g.database

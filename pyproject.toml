@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "hse-model-api"
 version = "0.1.0"
-description = ""
+description = "A simple example of ML models API"
 authors = ["goo-goo-goo-joob"]
 license = "MIT License"
 readme = "README.md"
-packages = [{include = "hse_model_api"}]
+packages = [{ include = "hse_model_api" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -13,9 +13,31 @@ flask-restx = "^0.5.1"
 werkzeug = "2.1.2"
 pandas = "^1.5.1"
 catboost = "^1.1"
-sklearn = "^0.0"
 
+
+[tool.poetry.group.dev.dependencies]
+scikit-learn = "^1.1.2"
+flake8 = "^5.0.4"
+bandit = {extras = ["toml"], version = "^1.7.4"}
+pylint = "^2.15.4"
+pyproject-flake8 = "^5.0.4.post1"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length = 120
+disable = """
+    too-many-arguments,
+    invalid-name,
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+"""
+
+[tool.bandit]
+skips = ["B101", "B104", "B201"]
+
+[tool.flake8]
+max-line-length = 120
