@@ -1,8 +1,9 @@
 import abc
-import enum
 import tempfile
+import typing
 
 import catboost
+import pandas as pd
 
 
 class BaseModel(abc.ABC):
@@ -14,11 +15,11 @@ class BaseModel(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def fit(self, X, y):
+    def fit(self, X: pd.DataFrame, y: list):
         pass
 
     @abc.abstractmethod
-    def predict(self, X):
+    def predict(self, X: pd.DataFrame):
         pass
 
     @abc.abstractmethod
@@ -43,10 +44,10 @@ class CatBoostClassifierModel(BaseModel):
         else:
             self.clf = obj
 
-    def fit(self, X, y):
+    def fit(self, X: pd.DataFrame, y: list):
         self.clf.fit(X, y)
 
-    def predict(self, X):
+    def predict(self, X: pd.DataFrame):
         return self.clf.predict_proba(X)[:, 1]
 
     def dumps(self) -> bytes:
@@ -74,10 +75,10 @@ class CatBoostRegressorModel(BaseModel):
         else:
             self.reg = obj
 
-    def fit(self, X, y):
+    def fit(self, X: pd.DataFrame, y: list):
         self.reg.fit(X, y)
 
-    def predict(self, X):
+    def predict(self, X: pd.DataFrame):
         return self.reg.predict(X)
 
     def dumps(self) -> bytes:
@@ -93,35 +94,31 @@ class CatBoostRegressorModel(BaseModel):
         return CatBoostRegressorModel(obj=reg)
 
 
-class ModelEnum(enum.Enum):
-    """
-    Possible model types and respective classes
-    """
-
-    catboost_classifier = CatBoostClassifierModel
-    catboost_regressor = CatBoostRegressorModel
+# Possible model types and respective classes
+ModelTypes = {
+    'catboost_classifier': CatBoostClassifierModel,
+    'catboost_regressor': CatBoostRegressorModel
+}
 
 
-def get_model_type(model_type: str) -> type[BaseModel]:
+def get_model_type(model_type: str) -> typing.Optional[type[BaseModel]]:
     """
     Get class of model by its type
     :param model_type: type of model
     :return: class of model
     """
-    mt = getattr(ModelEnum, model_type, None)
-    if mt is None:
-        raise Exception(f"Unknown model {model_type}")
-    return mt.value
+    mt = ModelTypes.get(model_type)
+    return mt
 
 
-def load_model(model_type: str, blob: bytes) -> BaseModel:
+def load_model(model_type: str, blob: bytes) -> typing.Optional[BaseModel]:
     """
     Load model binary from its name
     :param model_type: type of model
     :param blob: binary representation of model
     :return: loaded (fitted) model of certain type
     """
-    mt = getattr(ModelEnum, model_type, None)
+    mt = ModelTypes.get(model_type)
     if mt is None:
-        raise Exception(f"Unknown model {model_type}")
-    return mt.value.loads(blob)
+        return None
+    return mt.loads(blob)

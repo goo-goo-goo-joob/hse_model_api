@@ -1,5 +1,6 @@
 # hse_model_api
 
+## Description
 A simple example of ML models API
 
 REST API for
@@ -11,6 +12,21 @@ REST API for
 
 Swagger documentation is available
 
-Code style check with `make linters`
+## Install dependencies
+```
+pip install poetry
+poetry install
+```
 
+## Run app
+```
+PYTHONPATH='.' python model_api/__main__.py
+```
+
+## Code style check
+```
+make linters
+```
+
+## Demo
 API demo [notebook](api_test.ipynb) 

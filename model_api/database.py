@@ -2,8 +2,6 @@ import json
 import sqlite3
 import typing
 
-from flask import g
-
 INIT_STATEMENT = """CREATE TABLE IF NOT EXISTS models
 (
     id  text,
@@ -61,8 +59,8 @@ class DataBase:
         :return: model info
         """
         sql = """SELECT id, type, params, binary
-FROM models
-WHERE id = ?;"""
+                 FROM models
+                 WHERE id = ?;"""
         for id_, type_, params, binary in self.conn.execute(sql, (id_src,)):
             return {
                 "id": id_,
@@ -87,9 +85,3 @@ WHERE id = ?;"""
                 }
             )
         return result
-
-
-def get_database():
-    if "database" not in g:
-        g.database = DataBase()
-    return g.database
