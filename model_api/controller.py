@@ -107,7 +107,7 @@ class ModelRetrain(Resource):
         target = request.json["target"]
         model_name = request.json["model_name"]
         try:
-            model_name = service.post_model_retrain(data, target, model_name)
+            model_name = service.model_retrain(data, target, model_name)
         except NotFoundError as e:
             return {"message": str(e)}, 404
         return {"model_name": model_name}
@@ -128,12 +128,12 @@ class ModelApi(Resource):
         model_type = request.json["model_type"]
         params = request.json["params"]
         try:
-            model_name = service.post_model(data, target, model_type, params)
+            model_name = service.model_train(data, target, model_type, params)
         except NotFoundError as e:
             return {"message": str(e)}, 404
         return {"model_name": model_name}
 
-    @api.response(200, "Successfully retrained", prediction_output)
+    @api.response(200, "Successfully predicted", prediction_output)
     @api.response(404, "Not found error", error_output)
     @api.expect(model_predict_input)
     def get(self):

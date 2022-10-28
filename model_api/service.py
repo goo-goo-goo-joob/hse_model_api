@@ -14,13 +14,14 @@ class Service:
     def __init__(self):
         self.db = DataBase()
 
-    def get_model_list(self) -> list:
+    @staticmethod
+    def get_model_list() -> list:
         return list(ModelTypes.keys())
 
     def get_model_instances(self) -> list[dict]:
         return self.db.get_models()
 
-    def post_model_retrain(self, data: pd.DataFrame, target: list, model_name: str) -> str:
+    def model_retrain(self, data: pd.DataFrame, target: list, model_name: str) -> str:
         model_dict = self.db.get_model(model_name)
         if model_dict is None:
             raise NotFoundError("Model not found")
@@ -35,7 +36,7 @@ class Service:
         self.db.create_model(model_name, model_type, params, clf.dumps())
         return model_name
 
-    def post_model(self, data: pd.DataFrame, target: list, model_type: str, params: dict) -> str:
+    def model_train(self, data: pd.DataFrame, target: list, model_type: str, params: dict) -> str:
         model_name = str(uuid.uuid4())
         clf = get_model_type(model_type)
         if clf is None:
