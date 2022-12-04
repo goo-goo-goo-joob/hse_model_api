@@ -1,13 +1,13 @@
 import json
-import sqlite3
 import typing
+import psycopg2
 
 INIT_STATEMENT = """CREATE TABLE IF NOT EXISTS models
 (
-    id  text,
-    type       text,
+    id  varchar(64),
+    type       varchar(64),
     params     text,
-    binary    blob,
+    model_binary    bytea,
     PRIMARY KEY (id)
 );"""
 
@@ -17,10 +17,10 @@ class DataBase:
     Class for database operations
     """
 
-    def __init__(self, path="main.db"):
-        self.conn = sqlite3.connect(path, check_same_thread=False)
-        with self.conn:
-            self.conn.executescript(INIT_STATEMENT)
+    def __init__(self, dsn):
+        self.conn = psycopg2.connect(dsn)
+        with self.conn.cursor() as cursor:
+            cursor.execute(INIT_STATEMENT)
 
     def close(self):
         self.conn.close()
@@ -34,12 +34,12 @@ class DataBase:
         :param binary: binary representation of model
         :return: success or not
         """
-        sql = """INSERT INTO models (id, type, params, binary) VALUES (?, ?, ?, ?);"""
+        sql = """INSERT INTO models (id, type, params, model_binary) VALUES (%s, %s, %s, %s);"""
         try:
-            with self.conn:
-                self.conn.execute(sql, (id_, type_, json.dumps(params), binary))
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql, (id_, type_, json.dumps(params), binary))
             return True
-        except sqlite3.IntegrityError:
+        except psycopg2.IntegrityError:
             return False
 
     def delete_model(self, id_: str):
@@ -48,9 +48,9 @@ class DataBase:
         :param id_: unique string identifier
         :return:
         """
-        sql = """DELETE FROM models WHERE id = ?;"""
-        with self.conn:
-            self.conn.execute(sql, (id_,))
+        sql = """DELETE FROM models WHERE id = %s;"""
+        with self.conn.cursor() as cursor:
+            cursor.execute(sql, (id_,))
 
     def get_model(self, id_src: str) -> dict[str, typing.Any]:
         """
@@ -58,16 +58,19 @@ class DataBase:
         :param id_src: unique string identifier
         :return: model info
         """
-        sql = """SELECT id, type, params, binary
+        sql = """SELECT id, type, params, model_binary
                  FROM models
-                 WHERE id = ?;"""
-        for id_, type_, params, binary in self.conn.execute(sql, (id_src,)):
-            return {
-                "id": id_,
-                "type": type_,
-                "params": json.loads(params),
-                "binary": binary,
-            }
+                 WHERE id = %s;"""
+        with self.conn.cursor() as cursor:
+            cursor.execute(sql, (id_src,))
+            for id_, type_, params, binary in cursor.fetchall():
+                # assert type(binary) == bytes, "Wrong type: {}".format(type(binary))
+                return {
+                    "id": id_,
+                    "type": type_,
+                    "params": json.loads(params),
+                    "binary": binary.tobytes(),
+                }
 
     def get_models(self) -> list[dict]:
         """
@@ -76,12 +79,15 @@ class DataBase:
         """
         sql = """SELECT id, type, params FROM models"""
         result = []
-        for id_, type_, params in self.conn.execute(sql):
-            result.append(
-                {
-                    "id": id_,
-                    "type": type_,
-                    "params": json.loads(params),
-                }
-            )
+
+        with self.conn.cursor() as cursor:
+            cursor.execute(sql)
+            for id_, type_, params in cursor.fetchall():
+                result.append(
+                    {
+                        "id": id_,
+                        "type": type_,
+                        "params": json.loads(params),
+                    }
+                )
         return result

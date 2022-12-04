@@ -11,8 +11,10 @@ class NotFoundError(Exception):
 
 
 class Service:
-    def __init__(self):
-        self.db = DataBase()
+    def __init__(self, database_dsn=None):
+        if database_dsn is None:
+            database_dsn = "host='mydb' dbname='mydb' user='mydb' password='mydb'"
+        self.db = DataBase(database_dsn)
 
     @staticmethod
     def get_model_list() -> list:

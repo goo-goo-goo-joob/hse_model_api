@@ -8,4 +8,4 @@ parser.add_argument('--host', type=str, help='host')
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    app.run(debug=True, port=args.port, host=args.host)
+    app.run(port=args.port, host=args.host)

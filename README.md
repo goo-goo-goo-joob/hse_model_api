@@ -12,21 +12,26 @@ REST API for
 
 Swagger documentation is available
 
-## Install dependencies
-```
-pip install poetry
-poetry install
-```
+Postgresql is used
 
 ## Run app
 ```
-PYTHONPATH='.' python model_api/__main__.py 8866 '0.0.0.0'
+pip install poetry
+poetry install
+PYTHONPATH='.' python model_api/__main__.py --port 8866 --host '0.0.0.0'
+```
+or
+```
+make build && docker-compose up 
 ```
 
 ## Code style check
 ```
 make linters
 ```
+
+## Docker image
+https://hub.docker.com/r/googoogoojoob/model_api
 
 ## Demo
 API demo [notebook](api_test.ipynb) 
