@@ -11,3 +11,6 @@ linters: pylint flake8 bandit
 
 build:
 	docker build -t googoogoojoob/model_api .
+
+pytest:
+	pytest
